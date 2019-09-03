@@ -7,6 +7,7 @@ More detailed description.
 import base64
 import os
 import pathlib
+import sqlite3
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.backends import default_backend
@@ -21,19 +22,41 @@ __email__ = 'benjaminpillot@riseup.net'
 __version__ = '2.0'
 
 
-_kdf = PBKDF2HMAC(
-    algorithm=hashes.SHA256(),
-    length=32,
-    salt=open(os.path.join(str(pathlib.Path.home()), ".kalimain", "keyring"), 'rb').read(16),
-    iterations=100000,
-    backend=default_backend()
-)
+def create_database(db_file):
+    """ Create sqlite database
 
-_fernet = Fernet(base64.urlsafe_b64encode(_kdf.derive(b"kalimain")))
+    :param db_file:
+    :return:
+    """
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        print(sqlite3.version)
+    except Exception as e:
+        print(e)
+    finally:
+        if conn:
+            conn.close()
 
-with open(os.path.join(str(pathlib.Path.home()), ".kalimain", "kali_credentials"), 'rb') as file:
-    ENGINE = create_engine("mysql://%s:%s@localhost/kalimaindb" % (_fernet.decrypt(file.read(100)).decode("ascii"),
-                                                                   _fernet.decrypt(file.read()).decode("ascii")),
-                           echo=True)
+
+# _kdf = PBKDF2HMAC(
+#     algorithm=hashes.SHA256(),
+#     length=32,
+#     salt=open(os.path.join(str(pathlib.Path.home()), ".kalimain", "keyring"), 'rb').read(16),
+#     iterations=100000,
+#     backend=default_backend()
+# )
+
+# _fernet = Fernet(base64.urlsafe_b64encode(_kdf.derive(b"kalimain")))
+
+# with open(os.path.join(str(pathlib.Path.home()), ".kalimain", "kali_credentials"), 'rb') as file:
+#     ENGINE = create_engine("mysql://%s:%s@localhost/kalimaindb" % (_fernet.decrypt(file.read(100)).decode("ascii"),
+#                                                                    _fernet.decrypt(file.read()).decode("ascii")),
+#                            echo=True)
+
+
+path_to_sqlite_db = os.path.join(str(pathlib.Path.home()), '.kalimain', '.kalimaindb.db')
+create_database(path_to_sqlite_db)
+ENGINE = create_engine("sqlite:////%s" % path_to_sqlite_db, echo=True)
 
 SESSION = sessionmaker(ENGINE)
