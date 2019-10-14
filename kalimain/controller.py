@@ -15,22 +15,23 @@ from kalimain import __version__ as __kversion__
 from kalimain import __copyright__ as __kcopyright__
 from kalimain.buttons import ToggleButtonGroup
 from kalimain.controltools import Command, KState
-from kalimain.dialog import CaveDialog, ImageDialog
+from kalimain.dialog import CaveDialog, ImageDialog, NewProjectDialog
 from kalimain.observer import Observer
 
 
 class Controller:
 
+    # Observer classes
+    class AddObserver(Observer):
+        def __init__(self, view):
+            self.view = view
+
     def __init__(self, view, model):
         self.model = model
         self.view = view
-        self.set_observers()
+        # self.set_observers()
         self.add_observers_to_notifiers()
         self.add_controls()
-
-    @abstractmethod
-    def set_observers(self):
-        pass
 
     @abstractmethod
     def add_observers_to_notifiers(self):
@@ -47,26 +48,10 @@ class MainController(Controller):
     toggle_button_group = None
     mouse_button1 = None
 
-    # Observers
-    add_image_observer = None
-    delete_image_observer = None
-    set_image_observer = None
-    add_cave_observer = None
-    delete_cave_observer = None
-    set_cave_observer = None
-    add_point_observer = None
-    add_hand_observer = None
-    delete_hand_observer = None
-    delete_last_point_observer = None
-    hand_info_observer = None
-
     ##################
     # Observer classes
-    class AddObserver(Observer):
-        def __init__(self, view):
-            self.view = view
 
-    class AddPointObserver(AddObserver):
+    class AddPointObserver(Controller.AddObserver):
 
         def update(self, observable, points):
             self.view.canvas_points.append(self.view.draw_point(points[-1]))
@@ -74,7 +59,7 @@ class MainController(Controller):
                 self.view.canvas_lines.append(self.view.draw_line(points[-2:]))
             self.view.notify_observers()
 
-    class AddHandObserver(AddObserver):
+    class AddHandObserver(Controller.AddObserver):
 
         def update(self, observable, hand):
             self.view.freeze_hand()
@@ -82,56 +67,61 @@ class MainController(Controller):
             self.view.reset_canvas_objects()
             self.view.notify_observers()
 
-    class DeleteHandObserver(AddObserver):
+    class DeleteHandObserver(Controller.AddObserver):
 
         def update(self, observable, hand_id):
             self.view.delete_hand(hand_id)
             self.view.notify_observers()
 
-    class DeleteLastPointObserver(AddObserver):
+    class DeleteLastPointObserver(Controller.AddObserver):
 
         def update(self, observable, arg):
             self.view.delete_last_point()
             self.view.notify_observers()
 
-    class HandInfoObserver(AddObserver):
+    class HandInfoObserver(Controller.AddObserver):
 
         def update(self, observable, info):
             self.view.disp_hand_info(info)
 
-    class AddImageObserver(AddObserver):
+    class AddImageObserver(Controller.AddObserver):
 
         def update(self, observable, image):
             self.view.image_listbox.append(image.name, image.id)
 
-    class DeleteImageObserver(AddObserver):
+    class DeleteImageObserver(Controller.AddObserver):
 
         def update(self, observable, image_id):
             self.view.clear_canvas()
             self.view.image_listbox.drop(image_id)
             self.view.notify_observers()
 
-    class SetImageObserver(AddObserver):
+    class SetImageObserver(Controller.AddObserver):
 
         def update(self, observable, image):
             self.view.clear_canvas()
             self.view.load_canvas(image)
             self.view.notify_observers()
 
-    class AddCaveObserver(AddObserver):
+    class AddCaveObserver(Controller.AddObserver):
 
         def update(self, observable, cave):
             self.view.cave_listbox.append(cave.name, cave.id)
 
-    class DeleteCaveObserver(AddObserver):
+    class DeleteCaveObserver(Controller.AddObserver):
 
         def update(self, observable, cave_id):
             self.view.cave_listbox.drop(cave_id)
 
-    class SetCaveObserver(AddObserver):
+    class SetCaveObserver(Controller.AddObserver):
 
         def update(self, observable, cave):
             self.view.image_listbox.populate([img.name for img in cave.images], [img.id for img in cave.images])
+
+    class SetProjectObserver(Controller.AddObserver):
+
+        def update(self, observable, project):
+            self.view.cave_listbox.populate([cave.name for cave in project.caves], [cave.id for cave in project.caves])
 
     ####################
     # Controller methods
@@ -212,39 +202,42 @@ class MainController(Controller):
         # Add update controls
         self._add_update_controls()
 
-    def set_observers(self):
-        """ Set view observers
-
-        :return:
-        """
-        self.add_image_observer = MainController.AddImageObserver(self.view)
-        self.delete_image_observer = MainController.DeleteImageObserver(self.view)
-        self.set_image_observer = MainController.SetImageObserver(self.view)
-        self.add_cave_observer = MainController.AddCaveObserver(self.view)
-        self.delete_cave_observer = MainController.DeleteCaveObserver(self.view)
-        self.set_cave_observer = MainController.SetCaveObserver(self.view)
-        self.add_point_observer = MainController.AddPointObserver(self.view)
-        self.add_hand_observer = MainController.AddHandObserver(self.view)
-        self.delete_hand_observer = MainController.DeleteHandObserver(self.view)
-        self.delete_last_point_observer = MainController.DeleteLastPointObserver(self.view)
-        self.hand_info_observer = MainController.HandInfoObserver(self.view)
+    # def set_observers(self):
+    #     """ Set view observers
+    #
+    #     :return:
+    #     """
+    #     self.add_image_observer = MainController.AddImageObserver(self.view)
+    #     self.delete_image_observer = MainController.DeleteImageObserver(self.view)
+    #     self.set_image_observer = MainController.SetImageObserver(self.view)
+    #     self.add_cave_observer = MainController.AddCaveObserver(self.view)
+    #     self.delete_cave_observer = MainController.DeleteCaveObserver(self.view)
+    #     self.set_cave_observer = MainController.SetCaveObserver(self.view)
+    #     self.add_point_observer = MainController.AddPointObserver(self.view)
+    #     self.add_hand_observer = MainController.AddHandObserver(self.view)
+    #     self.delete_hand_observer = MainController.DeleteHandObserver(self.view)
+    #     self.delete_last_point_observer = MainController.DeleteLastPointObserver(self.view)
+    #     self.hand_info_observer = MainController.HandInfoObserver(self.view)
+    #     self.set_project_observer = MainController.SetProjectObserver(self.view)
 
     def add_observers_to_notifiers(self):
         """ Add observers to notifiers
 
         :return:
         """
-        self.model.image_model.add_object_notifier.add_observer(self.add_image_observer)
-        self.model.image_model.delete_object_notifier.add_observer(self.delete_image_observer)
-        self.model.image_model.set_object_notifier.add_observer(self.set_image_observer)
-        self.model.cave_model.add_object_notifier.add_observer(self.add_cave_observer)
-        self.model.cave_model.delete_object_notifier.add_observer(self.delete_cave_observer)
-        self.model.cave_model.set_object_notifier.add_observer(self.set_cave_observer)
-        self.model.point_model.add_point_notifier.add_observer(self.add_point_observer)
-        self.model.hand_model.add_object_notifier.add_observer(self.add_hand_observer)
-        self.model.hand_model.delete_object_notifier.add_observer(self.delete_hand_observer)
-        self.model.point_model.delete_last_point_notifier.add_observer(self.delete_last_point_observer)
-        self.model.hand_model.hand_info_notifier.add_observer(self.hand_info_observer)
+        self.model.image_model.add_object_notifier.add_observer(MainController.AddImageObserver(self.view))
+        self.model.image_model.delete_object_notifier.add_observer(MainController.DeleteImageObserver(self.view))
+        self.model.image_model.set_object_notifier.add_observer(MainController.SetImageObserver(self.view))
+        self.model.cave_model.add_object_notifier.add_observer(MainController.AddCaveObserver(self.view))
+        self.model.cave_model.delete_object_notifier.add_observer(MainController.DeleteCaveObserver(self.view))
+        self.model.cave_model.set_object_notifier.add_observer(MainController.SetCaveObserver(self.view))
+        self.model.point_model.add_point_notifier.add_observer(MainController.AddPointObserver(self.view))
+        self.model.hand_model.add_object_notifier.add_observer(MainController.AddHandObserver(self.view))
+        self.model.hand_model.delete_object_notifier.add_observer(MainController.DeleteHandObserver(self.view))
+        self.model.point_model.delete_last_point_notifier.add_observer(MainController.DeleteLastPointObserver(
+            self.view))
+        self.model.hand_model.hand_info_notifier.add_observer(MainController.HandInfoObserver(self.view))
+        self.model.project_model.set_object_notifier.add_observer(MainController.SetProjectObserver(self.view))
 
     ##################
     # Callback methods
@@ -283,7 +276,8 @@ class MainController(Controller):
 
         :return:
         """
-        meta = CaveDialog(self.view.root, title="New cave")
+        meta = CaveDialog(self.view.root, title="New cave", default_name="Cave %d" % (len(
+            self.view.cave_listbox.items) + 1))
         if meta.result:
             self.model.cave_model.add_cave(**meta.result)
 
@@ -400,13 +394,16 @@ class DataDisplayController(Controller):
     def add_observers_to_notifiers(self):
         pass
 
-    def set_observers(self):
-        pass
-
 
 class KController(Controller):
 
     tab_controllers = (MainController, DataDisplayController)
+
+    # Observer classes
+    class AddProjectObserver(Controller.AddObserver):
+
+        def update(self, observable, project):
+            pass
 
     def __init__(self, view, model):
         """ Build KController class instance
@@ -445,11 +442,13 @@ class KController(Controller):
                 except TclError:  # To avoid separators in Menu entrycget
                     pass
 
-    def add_observers_to_notifiers(self):
-        pass
+    # def set_observers(self):
+    #
+    #     self.add_project_observer = KController.AddProjectObserver(self.view)
 
-    def set_observers(self):
-        pass
+    def add_observers_to_notifiers(self):
+
+        self.model.project_model.add_object_notifier.add_observer(KController.AddProjectObserver(self.view))
 
     @staticmethod
     def on_about_menu():
@@ -459,7 +458,10 @@ class KController(Controller):
         self.view.root.destroy()
 
     def on_new_project(self):
-        pass
+        meta = NewProjectDialog(self.view.root, title="New project", default_name="Project %d" % (len(
+            self.model.project_model.projects) + 1))
+        if meta.result:
+            self.model.project_model.add_project(**meta.result)
 
     def on_open_project(self):
         pass
