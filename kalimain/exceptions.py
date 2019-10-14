@@ -98,3 +98,7 @@ class ApiConnectionWarning(KWarning):
 
 class DuplicateElementWarning(KWarning):
     pass
+
+
+class InvalidNameWarning(KWarning):
+    pass
