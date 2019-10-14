@@ -54,9 +54,16 @@ def create_database(db_file):
 #                                                                    _fernet.decrypt(file.read()).decode("ascii")),
 #                            echo=True)
 
+kalimain_home_directory = os.path.join(str(pathlib.Path.home()), '.kalimain')
+path_to_sqlite_db = os.path.join(kalimain_home_directory, 'kalimaindb.db')
 
-path_to_sqlite_db = os.path.join(str(pathlib.Path.home()), '.kalimain', '.kalimaindb.db')
+try:
+    # Create target Directory
+    os.mkdir(kalimain_home_directory)
+except FileExistsError:
+    pass
+
 create_database(path_to_sqlite_db)
-ENGINE = create_engine("sqlite:////%s" % path_to_sqlite_db, echo=True)
+ENGINE = create_engine("sqlite:///%s" % path_to_sqlite_db, echo=True)
 
 SESSION = sessionmaker(ENGINE)
