@@ -10,6 +10,7 @@ from tkinter import font as tkfont
 from abc import ABCMeta, abstractmethod
 
 from kalimain.viewtools import FloatEntry
+from kalimain.widgets import KListbox
 
 
 class Dialog(tk.Toplevel, metaclass=ABCMeta):
@@ -171,8 +172,9 @@ class KDialog(Dialog):
             self.description_entry.insert(0, self.default_description_entry)
 
     def apply(self):
-        self.result = dict(name=self.name_entry.get(),
-                           description=self.description_entry.get("1.0", "end-1c"))
+        name = self.name_entry.get().strip()
+        if name:
+            self.result = dict(name=name, description=self.description_entry.get("1.0", "end-1c"))
 
 
 class ImageDialog(KDialog):
@@ -216,6 +218,7 @@ class NewProjectDialog(KDialog):
     """ Project's dialog when user creates new project
 
     """
+    pass
 
 
 class OpenProjectDialog(Dialog):
