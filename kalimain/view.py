@@ -297,12 +297,24 @@ class KView(Framework):
 
     tab_views = (MainView, DataDisplayView)
     tab_titles = ("Insert", "Display")
+    top_bar = None
+
+    # Top bar controls
+    project_combo_box = None
 
     def __init__(self, root, model, width=1200, height=900):
         super().__init__(root, width, height)
         self.model = model
         self.notebook = ttk.Notebook(self.root)
         self.create_gui()
+
+    def disable_tabs(self):
+        for item in self.notebook.tabs():
+            self.notebook.tab(item, state="disable")
+
+    def enable_tabs(self):
+        for item in self.notebook.tabs():
+            self.notebook.tab(item, state="normal")
 
     def _create_menu(self):
         menu_definitions = (
@@ -321,8 +333,27 @@ class KView(Framework):
             self.tabs.append(tk.Frame(self.notebook))
             self.notebook.add(self.tabs[i], text=title)
             self.views.append(view(self.tabs[i], self.model, self.screen_w, self.screen_h))
-        self.notebook.pack(expand="yes", fill="both")
+        self.notebook.pack(side="top", expand="yes", fill="both")
+
+    def _create_top_bar(self):
+        """ Create top bar
+
+        :return:
+        """
+        self.top_bar = KFrame(self.root, relief=tk.RAISED)
+        self.top_bar.pack(fill="x", side="top", padx=2)  # pady = external padding (rembourrage...)
+        Separator(self.root, orient=tk.HORIZONTAL).pack(side="top", fill="x")
+
+    def _create_top_bar_controls(self):
+        """ Fill top bar with controls
+
+        :return:
+        """
+        self.project_combo_box = ttk.Combobox(master=self.top_bar)
+        self.project_combo_box.pack(side="left")
 
     def create_gui(self):
         self._create_menu()
+        self._create_top_bar()
+        self._create_top_bar_controls()
         self._create_tabs()
