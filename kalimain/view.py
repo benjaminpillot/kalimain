@@ -18,7 +18,14 @@ from kalimain.viewtools import Framework, ZoomAdvanced, containerxy, canvasxy, T
 from kalimain.widgets import KListbox, KFrame, KCFrame, KScale, KScaleImgFactor
 
 
-class SubView(Observable):
+class ObservableView(Observable):
+
+    def notify_observers(self, arg=None):
+        self.set_changed()
+        super().notify_observers(arg)
+
+
+class SubView(ObservableView):
 
     def __init__(self, root, model, screen_w, screen_h):
         super().__init__()
@@ -33,10 +40,6 @@ class SubView(Observable):
     @abstractmethod
     def create_gui(self):
         pass
-
-    def notify_observers(self, arg=None):
-        self.set_changed()
-        super().notify_observers(arg)
 
 
 class MainView(SubView):
@@ -290,7 +293,7 @@ class DataDisplayView(SubView):
         pass
 
 
-class KView(Framework):
+class KView(Framework, ObservableView):
 
     tabs = []
     views = []
@@ -300,10 +303,11 @@ class KView(Framework):
     top_bar = None
 
     # Top bar controls
-    project_combo_box = None
+    project_label = None
 
     def __init__(self, root, model, width=1200, height=900):
-        super().__init__(root, width, height)
+        Framework.__init__(self, root, width, height)
+        ObservableView.__init__(self)
         self.model = model
         self.notebook = ttk.Notebook(self.root)
         self.create_gui()
@@ -349,8 +353,8 @@ class KView(Framework):
 
         :return:
         """
-        self.project_combo_box = ttk.Combobox(master=self.top_bar)
-        self.project_combo_box.pack(side="left")
+        self.project_label = tk.Label(master=self.top_bar)
+        self.project_label.pack(side="left")
 
     def create_gui(self):
         self._create_menu()
