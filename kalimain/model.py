@@ -198,7 +198,17 @@ class ProjectModel(Model):
     """ Project's corresponding model
 
     """
+    current_project = None
     db_class = Project
+
+    def __init__(self, session, kmodel):
+        """
+
+        :param session:
+        :param kmodel: Main model
+        """
+        super().__init__(session)
+        self.kmodel = kmodel
 
     @property
     def projects(self):
@@ -207,6 +217,7 @@ class ProjectModel(Model):
     def add_project(self, name, description=None):
         project = Project(name=name, description=description)
         if project not in self.projects:
+            self.current_project = project
             self.add_object(project)
         else:
             warnings.warn("Project with that name already exists", DuplicateElementWarning)
@@ -229,7 +240,7 @@ class KModel(Model):
 
         # Initialize sub models
         self.point_model = PointModel(self.session)
-        self.project_model = ProjectModel(self.session)
+        self.project_model = ProjectModel(self.session, self)
         self.cave_model = CaveModel(self.session, self.project_model)
         self.image_model = ImageModel(self.session, self.cave_model)
         self.hand_model = HandModel(self.session, self.image_model, self.point_model)
