@@ -225,11 +225,23 @@ class OpenProjectDialog(Dialog):
     """ Project's dialog when user opens existing project
 
     """
+    list_height = 20
+    list_width = 20
+
+    klistbox = None
+    items = None
+
+    def __init__(self, parent, items):
+        self.items = items
+        super().__init__(parent, "Open project")
 
     def body(self, master):
         super().body(master)
-        pass
+
+        self.klistbox = KListbox(master, width=self.list_width, height=self.list_height)
+        self.klistbox.populate([item.name for item in self.items], [item.id for item in self.items])
+        self.klistbox.grid(row=0, column=1)
 
     def apply(self):
-        super().apply()
-        pass
+        if self.klistbox.curselection():
+            self.result = dict(project_id=self.klistbox.get_selected_id())
