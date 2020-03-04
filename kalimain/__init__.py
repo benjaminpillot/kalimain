@@ -4,6 +4,12 @@
 
 More detailed description.
 """
+
+__author__ = 'Benjamin Pillot'
+__copyright__ = 'Copyright © 2019, Benjamin Pillot - Jean Michel Chazine'
+__email__ = 'benjaminpillot@riseup.net'
+__version__ = '2.0'
+
 import base64
 import os
 import pathlib
@@ -15,11 +21,6 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
-__author__ = 'Benjamin Pillot'
-__copyright__ = 'Copyright © 2019, Benjamin Pillot - Jean Michel Chazine'
-__email__ = 'benjaminpillot@riseup.net'
-__version__ = '2.0'
 
 
 def create_database(db_file):
